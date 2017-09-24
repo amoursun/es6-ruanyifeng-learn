@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+//    function compile(template){
+//        var evalExpr = /<%=(.+?)%>/g;
+//        var expr = /<%([\s\S]+?)%>/g;
+//
+//        template = template
+//            .replace(evalExpr, '`); \n  echo( $1 ); \n  echo(`')
+//            .replace(expr, '`); \n $1 \n  echo(`');
+//
+//        template = 'echo(`' + template + '`);';
+//
+//        var script =
+//            `(function parse(data){
+//                var output = "";
+//                function echo(html){
+//                  output += html;
+//                }
+//                ${ template }
+//
+//                return output;
+//              })`;
+//
+//            return script;
+//        }
+//
+//    var parse = eval(compile(template));
+//    div.innerHTML = parse({ supplies: [ "broom", "mop", "cleaner" ] });
+
+String.raw()
+//ES6还为原生的String对象，提供了一个raw方法。
+//es6基本代码 raw方法内部源代码
+//String.raw = function (strings, ...values) {
+//    var output = "";
+//    for (var index = 0; index < values.length; index++) {
+//        output += strings.raw[index] + values[index];
+//    }
+//
+//    output += strings.raw[index]
+//    return output;
+//}
+
+var aa = String.raw({ raw: 'test' }, 0, 1, 2);
+console.log(aa);//t0e1s2t
+//等同于
+    console.log(String.raw({ raw: ['t','e','s','t'] }, 0, 1, 2));//t0e1s2t
+</script>

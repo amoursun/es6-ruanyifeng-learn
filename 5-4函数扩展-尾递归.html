@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+   //递归损耗内存,容易发生栈溢出
+   //尾递归只存在一个帧,不会发生栈溢出
+    //计算n的阶乘
+//    递归
+    function f(n) {
+        if (n === 1) return 1;
+        return n * f(n - 1) ;
+    }
+    var s = new Date();
+    console.log(f(100));//9.33262154439441e+157
+   console.log(new Date - s);//19
+//    尾递归
+    function fn(n,total){
+        if (n === 1) return total;
+        return fn(n - 1, n * total);
+    }
+//    或
+//   function fn(n,total = 1){
+//       if (n === 1) return total;
+//       return fn(n - 1, n * total);
+//   }
+//   fn(100)
+   var sn = new Date();
+   console.log(fn(100, 1));//9.33262154439441e+157
+   console.log(new Date - sn);//1
+
+// Fibonacci数列实现
+//    递归
+   function Fibonacci5 (n) {
+       if ( n <= 1 ) {return 1};
+
+       return Fibonacci5(n - 1) + Fibonacci5(n - 2);
+   }
+   console.log(Fibonacci5(10)); // 89
+//   console.log(Fibonacci5(100)); // 堆栈溢出
+
+//尾递归
+   function Fibonacci6 (n , a1 = 1 , a2 = 1) {
+       if( n <= 1 ) {return a2};
+
+       return Fibonacci6 (n - 1, a2, a1 + a2);
+   }
+
+   console.log(Fibonacci6(10)); // 89
+   console.log(Fibonacci6(100)); // 7573147844013817200000
+
+//递归函数的改写:  通过柯里化，将尾递归函数tailFactorial变为只接受一个参数的factorial
+   function currying(fn, n) {
+       return function (m) {
+           return fn.call(this, m, n);
+       };
+   }
+   function tailFactorial(n, total) {
+       if (n === 1) return total;
+       return tailFactorial(n - 1, n * total);
+   }
+   const factorial = currying(tailFactorial, 1);
+   factorial(5) // 120
+
+
+   //蹦床函数
+   function sum(x, y) {
+       if (y > 0) {
+           return sum(x + 1, y - 1);
+       } else {
+           return x;
+       }
+   }
+
+   sum(1, 100000); // Uncaught RangeError: Maximum call stack size exceeded(…)
+//   sum是一个递归函数，参数x是需要累加的值，参数y控制递归次数。一旦指定sum递归100000次，就会报错，提示超出调用栈的最大次数。
+    //优化改写
+   function tco(f) {
+       var value;
+       var active = false;
+       var accumulated = [];
+
+       return function accumulator() {
+           accumulated.push(arguments);
+           if (!active) {
+               active = true;
+               while (accumulated.length) {
+                   value = f.apply(this, accumulated.shift());
+               }
+               active = false;
+               return value;
+           }
+       };
+   }
+
+   var sum = tco(function(x, y) {
+       if (y > 0) {
+           return sum(x + 1, y - 1)
+       }
+       else {
+           return x
+       }
+   });
+   sum(1, 100000);// 100001
+//   上面代码中，tco函数是尾递归优化的实现，它的奥妙就在于状态变量active。默认情况下，这个变量是不激活的。
+//   一旦进入尾递归优化的过程，这个变量就激活了。然后，每一轮递归sum返回的都是undefined，所以就避免了递归执行；
+//   而accumulated数组存放每一轮sum执行的参数，总是有值的，这就保证了accumulator函数内部的while循环总是会执行。
+//   这样就很巧妙地将“递归”改成了“循环”，而后一轮的参数会取代前一轮的参数，保证了调用栈只有一层。
+
+
+
+
+
+
+
+
+
+
+
+</script>

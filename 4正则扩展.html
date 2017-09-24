@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+//    es6: RegExp构造函数第一个参数是一个正则对象，那么可以使用第二个参数指定修饰符
+//         返回的正则表达式会忽略原有的正则表达式的修饰符，只使用新指定的修饰符。
+    console.log(new RegExp(/abc/ig, 'i').flags);//原有正则对象的修饰符是ig，它会被第二个参数i覆盖。
+
+//es6 修饰符: g i u y s
+
+//    1 字符串的正则方法
+//字符串对象共有4个方法，可以使用正则表达式：match()、replace()、search() 和 split()
+//ES6 将这4个方法，全都定义在RegExp对象上
+//String.prototype.match 调用 RegExp.prototype[Symbol.match]
+//String.prototype.replace 调用 RegExp.prototype[Symbol.replace]
+//String.prototype.search 调用 RegExp.prototype[Symbol.search]
+//String.prototype.split 调用 RegExp.prototype[Symbol.split]
+
+    //  2 u修饰符
+//ES6 对正则表达式添加了u修饰符，含义为“Unicode模式”，用来正确处理大于\uFFFF的 Unicode 字符。也就是说，会正确处理四个字节的 UTF-16 编码。
+///^\uD83D/u.test('\uD83D\uDC2A') // false
+///^\uD83D/.test('\uD83D\uDC2A') // true
+//上面代码中，\uD83D\uDC2A是一个四个字节的 UTF-16 编码，代表一个字符。但是，ES5 不支持四个字节的 UTF-16 编码，会将其识别为两个字符，导致第二行代码结果为true。
+// 加了u修饰符以后，ES6 就会识别其为一个字符，所以第一行代码结果为false。  一旦加上u修饰符号，就会修改下面这些正则表达式的行为。
+
+    //3 y修饰符
+//除了u修饰符，ES6 还为正则表达式添加了y修饰符，叫做“粘连”（sticky）修饰符。
+//y修饰符的作用与g修饰符类似，也是全局匹配，后一次匹配都从上一次匹配成功的下一个位置开始。不同之处在于，g修饰符只要剩余位置中存在匹配就可，
+// 而y修饰符确保匹配必须从剩余的第一个位置开始，这也就是“粘连”的涵义。
+var s = 'aaa_aa_a';
+var r1 = /a+/g;
+var r2 = /a+/y;
+//执行了两次
+//第一次执行
+r1.exec(s) // ["aaa"]
+r2.exec(s) // ["aaa"]
+//第二次执行
+r1.exec(s) // ["aa"]
+r2.exec(s) // null
+//上面代码有两个正则表达式，一个使用g修饰符，另一个使用y修饰符。
+// 这两个正则表达式各执行了两次，第一次执行的时候，两者行为相同，剩余字符串都是_aa_a。
+// 由于g修饰没有位置要求，所以第二次执行会返回结果，而y修饰符要求匹配必须从头部开始，所以返回null。
+var s = 'aaa_aa_a';
+var r = /a+_/y;
+r.exec(s) // ["aaa_"]
+r.exec(s) // ["aa_"]
+
+//在split方法中使用y修饰符，原字符串必须以分隔符开头。这也意味着，只要匹配成功，数组的第一个成员肯定是空字符串。
+// 没有找到匹配
+'x##'.split(/#/y)
+// [ 'x##' ]
+// 找到两个匹配
+'##x'.split(/#/y)
+// [ '', '', 'x' ]
+//后续的分隔符只有紧跟前面的分隔符，才会被识别。
+'#x#'.split(/#/y)
+// [ '', 'x#' ]
+'##'.split(/#/y)
+// [ '', '', '' ]
+
+//下面是字符串对象的replace方法的例子
+const REGEX = /a/gy;
+'aaxa'.replace(REGEX, '-') // '--xa'
+//上面代码中，最后一个a因为不是出现在下一次匹配的头部，所以不会被替换
+//单单一个y修饰符对match方法，只能返回第一个匹配，必须与g修饰符联用，才能返回所有匹配。
+'a1a2a3'.match(/a\d/y) // ["a1"]
+'a1a2a3'.match(/a\d/gy) // ["a1", "a2", "a3"]
+//y修饰符的一个应用，是从字符串提取 token（词元），y修饰符确保了匹配之间不会有漏掉的字符。
+const TOKEN_Y = /\s*(\+|[0-9]+)\s*/y;
+const TOKEN_G  = /\s*(\+|[0-9]+)\s*/g;
+tokenize(TOKEN_Y, '3 + 4')
+// [ '3', '+', '4' ]
+tokenize(TOKEN_G, '3 + 4')
+// [ '3', '+', '4' ]
+function tokenize(TOKEN_REGEX, str) {
+    let result = [];
+    let match;
+    while (match = TOKEN_REGEX.exec(str)) {
+        result.push(match[1]);
+    }
+    return result;
+}
+//上面代码中，如果字符串里面没有非法字符，y修饰符与g修饰符的提取结果是一样的。但是，一旦出现非法字符，两者的行为就不一样了。
+tokenize(TOKEN_Y, '3x + 4')
+// [ '3' ]
+tokenize(TOKEN_G, '3x + 4')
+// [ '3', '+', '4' ]
+//上面代码中，g修饰符会忽略非法字符，而y修饰符不会，这样就很容易发现错误。
+
+
+    // 4 sticky 属性
+//与y修饰符相匹配，ES6 的正则对象多了sticky属性，表示是否设置了y修饰符。
+var r = /hello\d/y;
+r.sticky // true
+
+    // 5 flags 属性     ES6 为正则表达式新增了flags属性，会返回正则表达式的修饰符。
+// ES5 的 source 属性
+// 返回正则表达式的正文
+///abc/ig.source
+// "abc"
+
+// ES6 的 flags 属性
+// 返回正则表达式的修饰符
+///abc/ig.flags
+// 'gi'
+</script>
